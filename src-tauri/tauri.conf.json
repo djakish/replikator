@@ -11,7 +11,23 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": true,
+      "dialog": {
+        "all": true,
+        "open": true, 
+        "save": true 
+      },
+      "fs": {
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "exists": true
+      }
     },
     "bundle": {
       "active": true,
@@ -56,10 +72,9 @@
       {
         "fullscreen": false,
         "height": 600,
-        "resizable": false,
+        "resizable": true,
         "title": "replikator",
         "width": 800
-        
       }
     ],
     "systemTray": {
