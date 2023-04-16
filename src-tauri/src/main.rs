@@ -6,25 +6,15 @@
 use tauri::SystemTray;
 use tauri::{CustomMenuItem, SystemTrayMenu, SystemTrayMenuItem};
 
-use std::fmt::format;
-use std::io::{Read, Write};
 // my imports
 use jwalk::{Parallelism, WalkDir};
-use std::cmp::Ordering;
 use std::path::Path;
 use std::path::PathBuf;
 
 use std::ffi::OsStr;
 use std::fs::{self, File};
-use std::sync::{Arc, Mutex};
-use std::{io, thread};
 use tree_flat::prelude::*;
-use zstd::stream::Encoder;
 
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use pathdiff::diff_paths;
-use std::path::*;
 use tauri::Window;
 
 #[derive(Debug, thiserror::Error)]
@@ -42,18 +32,26 @@ impl serde::Serialize for FileTreeError {
     }
 }
 
+#[derive(Clone, serde::Serialize)]
+struct Payload {
+    message: String,
+}
+
 fn name_from_path(path: PathBuf) -> String {
     let os_str: &OsStr = path.file_name().unwrap();
     let string: String = os_str.to_string_lossy().to_string();
-    format!("{}", string)
+    string.to_string()
 }
 
 #[tauri::command]
 async fn get_files_tree(path: &str) -> Result<(String, usize), FileTreeError> {
     let mut tree = Tree::new(path.to_string());
     let mut parent = tree.tree_root_mut().parent;
+
+    let mut count: usize = 0;
+
     for entry in WalkDir::new(path)
-        .parallelism(Parallelism::RayonNewPool(4))
+        .parallelism(Parallelism::RayonNewPool(num_cpus::get()))
         .into_iter()
         .filter_map(|e| e.ok())
     {
@@ -67,12 +65,12 @@ async fn get_files_tree(path: &str) -> Result<(String, usize), FileTreeError> {
         );
         if entry.path().is_dir() {
             parent = node_id;
+        } else {
+            count += 1;
         }
     }
 
-    let count = tree.as_data().len();
-
-    Ok((format!("{}", tree),count))
+    Ok((format!("{}", tree), count))
 }
 
 // let file_path = PathBuf::from(output);
@@ -87,77 +85,123 @@ async fn get_files_tree(path: &str) -> Result<(String, usize), FileTreeError> {
 async fn compress_files(window: Window, input: &str, output: &str) -> Result<(), ()> {
     let input_dir = Path::new(input);
 
+
+    // Making a directory with the same name as the input directory
+    let together = format!(
+        "{}\\{}",
+        output,
+        input_dir.file_name().unwrap().to_string_lossy()
+    );
+    let output_dir = Path::new(&together);
+    
+    fs::create_dir_all(output_dir).unwrap();
+
     for entry in WalkDir::new(input_dir)
         .parallelism(Parallelism::RayonNewPool(num_cpus::get()))
         .into_iter()
         .filter_map(|e| e.ok())
     {
         let file_name = entry.file_name().to_string_lossy();
-        if entry.path().is_file() {
-            let dest_path = format!("{}/{}.zst", output, file_name);
+        let entry_path = entry.path();
+
+        if entry_path.is_file() {
+            let relative_path = entry_path.strip_prefix(input_dir).unwrap();
+
+            let dest_path = match relative_path.parent() {
+                Some(res) => {
+                    fs::create_dir_all(output_dir.join(res)).unwrap();
+                    format!(
+                        "{}\\{}.zst",
+                        output_dir.join(res).to_string_lossy(),
+                        file_name
+                    )
+                }
+                None => {
+                    format!("{}\\{}.zst", output_dir.to_string_lossy(), file_name)
+                }
+            };
+
             let input_file = File::open(entry.path()).unwrap();
             let output_file = File::create(dest_path).unwrap();
 
             zstd::stream::copy_encode(input_file, output_file, 3).unwrap();
 
-            window.emit("compress://progress", Payload { message: format!("[compressed] {} ", file_name) }).unwrap();
+            window
+                .emit(
+                    "compress://progress",
+                    Payload {
+                        message: format!("[compressed] {} ", file_name),
+                    },
+                )
+                .unwrap();
         }
     }
     Ok(())
 }
 
-#[derive(Clone, serde::Serialize)]
-struct Payload {
-  message: String,
-}
-
 #[tauri::command]
-async fn decompress_files(input: &str, output: &str) -> Result<(), ()> {
+async fn decompress_files(window: Window, input: &str, output: &str) -> Result<(), ()> {
     let input_dir = Path::new(input);
+
+    let together = format!(
+        "{}\\{}",
+        output,
+        input_dir.file_name().unwrap().to_string_lossy()
+    );
+
+    let output_dir = Path::new(&together);
+
+    // Create a parent directory
+    fs::create_dir_all(output_dir).unwrap();
 
     for entry in WalkDir::new(input_dir)
         .parallelism(Parallelism::RayonNewPool(num_cpus::get()))
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        let file_name = entry.file_name().to_string_lossy();
-        let new_string = &file_name[0..file_name.len() - 3];
+        let old_name = entry.file_name().to_string_lossy();
+        let file_name = &old_name[0..old_name.len() - 3];
 
-        if entry.path().is_file() {
-            let dest_path = format!("{}/{}", output, new_string);
+        let entry_path = entry.path();
+
+        if entry_path.is_file() {
+            let relative_path = entry_path.strip_prefix(input_dir).unwrap();
+
+            let dest_path = match relative_path.parent() {
+                Some(res) => {
+                    fs::create_dir_all(output_dir.join(res)).unwrap();
+                    format!("{}\\{}", output_dir.join(res).to_string_lossy(), file_name)
+                }
+                None => {
+                    format!("{}\\{}", output_dir.to_string_lossy(), file_name)
+                }
+            };
 
             let input_file = File::open(entry.path()).unwrap();
             let output_file = File::create(dest_path).unwrap();
 
             zstd::stream::copy_decode(input_file, output_file).unwrap();
 
+            window
+                .emit(
+                    "compress://progress",
+                    Payload {
+                        message: format!("[decompressed] {} ", file_name),
+                    },
+                )
+                .unwrap();
         }
     }
     Ok(())
 }
 
 fn main() {
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let hide = CustomMenuItem::new("open".to_string(), "Open");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(quit)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(hide);
-    let tray = SystemTray::new().with_menu(tray_menu);
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_files_tree,
             compress_files,
             decompress_files
         ])
-        .system_tray(tray)
-        .build(tauri::generate_context!())
-        .expect("error while running tauri application")
-        .run(|_app_handle, event| match event {
-            tauri::RunEvent::ExitRequested { api, .. } => {
-                api.prevent_exit();
-            }
-            _ => {}
-        });
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }

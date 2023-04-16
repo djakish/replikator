@@ -43,7 +43,6 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "blake3",
- "flate2",
  "jwalk",
  "num_cpus",
  "pathdiff",

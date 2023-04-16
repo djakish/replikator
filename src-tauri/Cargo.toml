@@ -27,9 +27,7 @@ rayon = "1.7.0"
 tree-flat = "0.1.2"
 num_cpus = "1.15.0"
 
-
 # temp
-flate2 = "1.0.25"
 pathdiff = "0.2.1"
 
 [features]

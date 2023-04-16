@@ -27,8 +27,20 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true
       }
     },
+    
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
@@ -72,9 +84,10 @@
       {
         "fullscreen": false,
         "height": 600,
-        "resizable": true,
+        "resizable": false,
         "title": "replikator",
-        "width": 800
+        "width": 800,
+        "decorations": false
       }
     ],
     "systemTray": {
