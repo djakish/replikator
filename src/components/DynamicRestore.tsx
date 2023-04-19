@@ -84,7 +84,7 @@ export default function DynamicRestore() {
       <Grid.Container gap={2} justify="flex-start">
         <RouterButtons />
         <Grid sm={22} >
-          <Card hoverable width="100%"  >
+          <Card hoverable shadow width="100%"  >
             <Text h4 my={0}>Restore a backup</Text>
             <Spacer h={.5} />
             <Grid.Container gap={2}>
@@ -98,7 +98,7 @@ export default function DynamicRestore() {
             <Spacer />
             <Textarea disabled value={fileTreeTextRef.current}  type="secondary" width="100%" height="260px" />
             <Spacer />
-            <Button loading={isLoading}  type="success-light" onClick={restore} scale={0.75}>restore</Button>
+            <Button loading={isLoading} type="success-light" onClick={restore} scale={0.75}>restore</Button>
             <Card.Footer>
               <Progress value={fileTreeCountRef.current} max={maxFileTreeCount} />
             </Card.Footer>

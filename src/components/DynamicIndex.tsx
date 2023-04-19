@@ -36,7 +36,7 @@ export default function DynamicIndex() {
     } else {
       // @ts-ignore       
       await setPath(await selected)
-      let file_tree_result: [string, number] = await invoke('get_files_tree', { path: await selected })
+      let file_tree_result: [string, number] = await invoke('folder_compare', { input: await selected, output: "C:\\Users\\zhang\\Desktop\\New folder\\Book" })
       await setFileTreeText(file_tree_result[0])
       await setMaxFileTreeCount(file_tree_result[1])
       await setFileTreeCount(0)
@@ -95,7 +95,7 @@ export default function DynamicIndex() {
               </Grid>
             </Grid.Container>
             <Spacer />
-            <Textarea disabled  value={fileTreeTextRef.current}  type="secondary" width="100%" height="260px" />
+            <Textarea disabled value={fileTreeTextRef.current}  type="secondary" width="100%" height="260px" />
             <Spacer />
             <Button loading={isLoading} type="success-light" onClick={backup} scale={0.75}>backup</Button>
             <Card.Footer>

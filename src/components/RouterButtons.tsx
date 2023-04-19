@@ -35,7 +35,7 @@ export default function RouterButtons(href: Url) {
           <Tooltip type="lite" placement="right" text={'Backup'}>
             <Link href="/">
               <Button iconRight={<Save />} auto px={0.6} />
-            </Link>
+            </Link> 
           </Tooltip>
           <Spacer h={0.5} />
           <Tooltip type="lite" placement="right" text={'Restore'}>
