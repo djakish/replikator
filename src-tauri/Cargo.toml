@@ -20,7 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.2.4", features = ["api-all", "system-tray"] }
 # new deps
 jwalk = "0.8.1"
-zstd = "0.12"
+zstd = {version = "0.12", features = ["zdict_builder"] }
 thiserror = "1.0.40"
 rayon = "1.7.0"
 tree-flat = "0.1.2"

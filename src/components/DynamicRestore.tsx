@@ -1,67 +1,88 @@
-
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from "@tauri-apps/api/tauri";
 
 // my imports
-import { useCurrentState,Card, Textarea,  Input, Progress, Page, Spacer, Text, Button, Grid } from '@geist-ui/core';
-import { open } from '@tauri-apps/api/dialog';
-import { useState } from 'react';
-import RouterButtons from '@/components/RouterButtons'
+import {
+  useCurrentState,
+  Card,
+  Textarea,
+  Input,
+  Progress,
+  Page,
+  Spacer,
+  Text,
+  Button,
+  Grid,
+} from "@geist-ui/core";
+import { open } from "@tauri-apps/api/dialog";
+import { useState } from "react";
+import RouterButtons from "@/components/RouterButtons";
 import { appWindow } from "@tauri-apps/api/window";
-import Controls from './Controls';
+import Controls from "./Controls";
+import LogOutput from "./LogOutput";
 
 interface Payload {
-    message: string;
+  message: string;
 }
 type ProgressHandler = (progress: number, total: number) => void;
-  
-  
+
 export default function DynamicRestore() {
-  const [path, setPath] = useState<string | undefined>('');
-  const [fileTreeText, setFileTreeText, fileTreeTextRef] = useCurrentState<string | undefined>('');
+  const [path, setPath] = useState<string | undefined>("");
+  const [fileTreeText, setFileTreeText] = useState<string | undefined>(
+    "Logs will be here"
+  );
   const [maxFileTreeCount, setMaxFileTreeCount] = useState<number>(0);
-  const [fileTreeCount, setFileTreeCount, fileTreeCountRef] = useCurrentState<number>(0);
+  const [fileTreeCount, setFileTreeCount] = useState<number>(0);
+  const [fileTreePercentage, setFileTreePercentage] = useState<number>(0);
+
   const [isLoading, setIsLoading] = useState(false);
-  const [fileTreeLoading, setFileTreeLoading, fileTreeLoadingRef] = useCurrentState(false)
+  const [fileTreeLoading, setFileTreeLoading, fileTreeLoadingRef] =
+    useCurrentState(false);
 
   async function openDir() {
-    setFileTreeLoading(true)
+    setFileTreeLoading(true);
     // Open a selection dialog for directories
     const selected = await open({
       directory: true,
       multiple: false,
-      defaultPath: '~/',
-    }); if (await selected === null) {
+      defaultPath: "~/",
+    });
+    if ((await selected) === null) {
       // user cancelled the selection
     } else {
-      // @ts-ignore       
-      await setPath(await selected)
-      let file_tree_result: [string, number] = await invoke('get_files_tree', { path: await selected })
-      await setFileTreeText(file_tree_result[0])
-      await setMaxFileTreeCount(file_tree_result[1] )
-      await setFileTreeCount(0)
+      // @ts-ignore
+      await setPath(await selected);
+      let file_tree_result: [string, number] = await invoke("get_files_tree", {
+        path: await selected,
+      });
+      await setFileTreeText(file_tree_result[0]);
+      await setMaxFileTreeCount(file_tree_result[1]);
+      await setFileTreeCount(0);
+      await setFileTreePercentage(0);
     }
-    setFileTreeLoading(false)
+    setFileTreeLoading(false);
   }
 
-
-
   async function restore() {
-    setIsLoading(true)
+    setIsLoading(true);
     const selected = open({
       directory: true,
       multiple: false,
-      defaultPath: '~/',
-    }); if (selected === null) {
+      defaultPath: "~/",
+    });
+    if (selected === null) {
       // user cancelled the selection
     } else {
-      await setFileTreeText('')
-      await listenToEventIfNeeded("compress://progress")
-      await invoke('decompress_files', { input: path, output: await selected })
+      await setFileTreeText("RESTORE STARTED \n");
+      await listenToEventIfNeeded("compress://progress");
+      let result: string = await invoke("decompress_files", {
+        input: path,
+        output: await selected,
+      });
+      setFileTreeText(fileTreeText + result + "\n");
     }
-    setIsLoading(false)
+    setIsLoading(false);
   }
 
-  const handlers: Map<number, ProgressHandler> = new Map();
   let listening = false;
 
   async function listenToEventIfNeeded(event: string): Promise<void> {
@@ -70,8 +91,20 @@ export default function DynamicRestore() {
     }
     return await appWindow
       .listen<Payload>(event, ({ payload }) => {
-        setFileTreeCount(fileTreeCountRef.current+1);
-        setFileTreeText(fileTreeTextRef.current + payload.message + "\n");
+        setFileTreeCount(fileTreeCount + 1);
+        setFileTreeText(fileTreeText + payload.message + "\n");
+        console.log(fileTreePercentage);
+
+        invoke("get_percentage_rounded", {
+          x: fileTreeCount,
+          y: maxFileTreeCount,
+        })
+          .then((res) => {
+            let num = res as number;
+
+            if (num != fileTreePercentage) setFileTreePercentage(res as number);
+          })
+          .catch((e) => console.error(e));
       })
       .then(() => {
         listening = true;
@@ -79,32 +112,50 @@ export default function DynamicRestore() {
   }
 
   return (
-    <Page render='effect-seo'>
+    <Page render="effect-seo">
       <Controls />
       <Grid.Container gap={2} justify="flex-start">
         <RouterButtons />
-        <Grid sm={22} >
-          <Card hoverable shadow width="100%"  >
-            <Text h4 my={0}>Restore a backup</Text>
-            <Spacer h={.5} />
+        <Grid sm={22}>
+          <Card hoverable shadow width="100%">
+            <Text h4 my={0}>
+              Restore a backup
+            </Text>
+            <Spacer h={0.5} />
             <Grid.Container gap={2}>
-              <Grid sm={14} xs={22}>
+              <Grid sm={18}>
                 <Input readOnly value={path} width="100%" />
               </Grid>
               <Grid>
-                <Button loading={fileTreeLoading} onClick={openDir} auto scale={0.75}> Pick a directory </Button>
+                <Button
+                  loading={fileTreeLoading}
+                  onClick={openDir}
+                  auto
+                  scale={0.75}
+                  width="100%"
+                >
+                  {" "}
+                  Pick a directory{" "}
+                </Button>
               </Grid>
             </Grid.Container>
             <Spacer />
-            <Textarea disabled value={fileTreeTextRef.current}  type="secondary" width="100%" height="260px" />
+            <LogOutput text={fileTreeText}></LogOutput>
             <Spacer />
-            <Button loading={isLoading} type="success-light" onClick={restore} scale={0.75}>restore</Button>
+            <Button
+              loading={isLoading}
+              type="success-light"
+              onClick={restore}
+              scale={0.75}
+            >
+              restore
+            </Button>
             <Card.Footer>
-              <Progress value={fileTreeCountRef.current} max={maxFileTreeCount} />
+              <Progress value={fileTreePercentage} max={100} />
             </Card.Footer>
           </Card>
         </Grid>
       </Grid.Container>
     </Page>
-  )
+  );
 }
