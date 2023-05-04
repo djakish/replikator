@@ -4,7 +4,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import {
   useCurrentState,
   Card,
-  Textarea,
   Input,
   Progress,
   Page,
@@ -14,18 +13,12 @@ import {
   Grid,
 } from "@geist-ui/core";
 import { open } from "@tauri-apps/api/dialog";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import RouterButtons from "@/components/RouterButtons";
-
 import { appWindow } from "@tauri-apps/api/window";
 import Controls from "./Controls";
-
 import LogOutput from "./LogOutput";
-
-interface Payload {
-  message: string;
-}
-type ProgressHandler = (progress: number, total: number) => void;
+import { Payload } from "@/lib/utils";
 
 export default function DynamicIndex() {
   const [path, setPath] = useState<string | undefined>("");
@@ -35,6 +28,7 @@ export default function DynamicIndex() {
   const [maxFileTreeCount, setMaxFileTreeCount] = useState<number>(0);
   const [fileTreeCount, setFileTreeCount, fileTreeCountRef] =
     useCurrentState<number>(0);
+
   const [fileTreePercentage, setFileTreePercentage] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -59,9 +53,9 @@ export default function DynamicIndex() {
       });
       await setFileTreeText(file_tree_result[0]);
       await setMaxFileTreeCount(file_tree_result[1]);
-      await setFileTreeCount(0);
-      await setFileTreePercentage(0);
     }
+    await setFileTreeCount(0);
+    await setFileTreePercentage(0);
     setFileTreeLoading(false);
   }
 
@@ -76,7 +70,7 @@ export default function DynamicIndex() {
       // user cancelled the selection
     } else {
       await setFileTreeText("BACKUP STARTED \n");
-      await listenToEventIfNeeded("compress://progress");
+      listenToEventIfNeeded("compress://progress");
       let result: string = await invoke("compress_files", {
         input: path,
         output: await selected,
@@ -86,7 +80,6 @@ export default function DynamicIndex() {
     setIsLoading(false);
   }
 
-  const handlers: Map<number, ProgressHandler> = new Map();
   let listening = false;
 
   async function listenToEventIfNeeded(event: string): Promise<void> {
@@ -94,17 +87,19 @@ export default function DynamicIndex() {
       return await Promise.resolve();
     }
     return await appWindow
-      .listen<Payload>(event, ({ payload }) => {
-        setFileTreeCount(fileTreeCountRef.current + 1);
-        setFileTreeText(fileTreeTextRef.current + payload.message + "\n");
+      .listen<Payload>(event, async ({ payload }) => {
+        await setFileTreeCount(fileTreeCountRef.current + 1);
+        await setFileTreeText(fileTreeTextRef.current + payload.message + "\n");
 
         invoke("get_percentage_rounded", {
           x: fileTreeCountRef.current,
           y: maxFileTreeCount,
         })
-          .then((res) => {
+          .then(async (res) => {
             let num = res as number;
-            if (num != fileTreePercentage) setFileTreePercentage(res as number);
+            if (num != fileTreePercentage) {
+              await setFileTreePercentage(res as number);
+            }
           })
           .catch((e) => console.error(e));
       })

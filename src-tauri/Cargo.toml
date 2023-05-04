@@ -20,12 +20,13 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.2.4", features = ["api-all", "system-tray"] }
 # new deps
 jwalk = "0.8.1"
-zstd = {version = "0.12", features = ["zdict_builder"] }
+zstd = {version = "0.12" }
 thiserror = "1.0.40"
 rayon = "1.7.0"
 tree-flat = "0.1.2"
 num_cpus = "1.15.0"
 seahash = "4.1.0"
+chrono = "0.4.24"
 # temp
 pathdiff = "0.2.1"
 
@@ -36,3 +37,10 @@ default = ["custom-protocol"]
 # this feature is used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort" # Strip expensive panic clean-up logic
+codegen-units = 1 # Compile crates one after another so the compiler can optimize better
+lto = true # Enables link to optimizations
+opt-level = "s" # Optimize for binary size
+strip = true # Remove debug symbols

@@ -4,7 +4,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import {
   useCurrentState,
   Card,
-  Textarea,
   Input,
   Progress,
   Page,
@@ -19,19 +18,17 @@ import RouterButtons from "@/components/RouterButtons";
 import { appWindow } from "@tauri-apps/api/window";
 import Controls from "./Controls";
 import LogOutput from "./LogOutput";
-
-interface Payload {
-  message: string;
-}
-type ProgressHandler = (progress: number, total: number) => void;
+import { Payload } from "@/lib/utils";
 
 export default function DynamicRestore() {
   const [path, setPath] = useState<string | undefined>("");
-  const [fileTreeText, setFileTreeText] = useState<string | undefined>(
-    "Logs will be here"
-  );
+  const [fileTreeText, setFileTreeText, fileTreeTextRef] = useCurrentState<
+    string | undefined
+  >("Logs will be here");
   const [maxFileTreeCount, setMaxFileTreeCount] = useState<number>(0);
-  const [fileTreeCount, setFileTreeCount] = useState<number>(0);
+  const [fileTreeCount, setFileTreeCount, fileTreeCountRef] =
+    useCurrentState<number>(0);
+
   const [fileTreePercentage, setFileTreePercentage] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -56,9 +53,9 @@ export default function DynamicRestore() {
       });
       await setFileTreeText(file_tree_result[0]);
       await setMaxFileTreeCount(file_tree_result[1]);
-      await setFileTreeCount(0);
-      await setFileTreePercentage(0);
     }
+    await setFileTreeCount(0);
+    await setFileTreePercentage(0);
     setFileTreeLoading(false);
   }
 
@@ -78,7 +75,7 @@ export default function DynamicRestore() {
         input: path,
         output: await selected,
       });
-      setFileTreeText(fileTreeText + result + "\n");
+      setFileTreeText(fileTreeTextRef.current + result + "\n");
     }
     setIsLoading(false);
   }
@@ -90,19 +87,19 @@ export default function DynamicRestore() {
       return await Promise.resolve();
     }
     return await appWindow
-      .listen<Payload>(event, ({ payload }) => {
-        setFileTreeCount(fileTreeCount + 1);
-        setFileTreeText(fileTreeText + payload.message + "\n");
-        console.log(fileTreePercentage);
+      .listen<Payload>(event, async ({ payload }) => {
+        await setFileTreeCount(fileTreeCountRef.current + 1);
+        await setFileTreeText(fileTreeTextRef.current + payload.message + "\n");
 
         invoke("get_percentage_rounded", {
-          x: fileTreeCount,
+          x: fileTreeCountRef.current,
           y: maxFileTreeCount,
         })
-          .then((res) => {
+          .then(async (res) => {
             let num = res as number;
-
-            if (num != fileTreePercentage) setFileTreePercentage(res as number);
+            if (num != fileTreePercentage) {
+              await setFileTreePercentage(res as number);
+            }
           })
           .catch((e) => console.error(e));
       })
@@ -140,7 +137,7 @@ export default function DynamicRestore() {
               </Grid>
             </Grid.Container>
             <Spacer />
-            <LogOutput text={fileTreeText}></LogOutput>
+            <LogOutput text={fileTreeTextRef.current}></LogOutput>
             <Spacer />
             <Button
               loading={isLoading}
