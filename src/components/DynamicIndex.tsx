@@ -116,7 +116,7 @@ export default function DynamicIndex() {
         <Grid sm={22}>
           <Card hoverable shadow width="100%">
             <Text h4 my={0}>
-              Create a backup
+              Create a single time backup
             </Text>
             <Spacer h={0.5} />
             <Grid.Container gap={2}>

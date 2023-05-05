@@ -2,12 +2,9 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 // my imports
 import {
-  useCurrentState,
   Modal,
   Card,
-  Textarea,
   Input,
-  Progress,
   Page,
   Spacer,
   Text,

@@ -124,7 +124,6 @@ async fn folder_compare(input: &str, output: &str) -> Result<(String, usize), Di
 
 #[tauri::command]
 fn get_percentage_rounded(x: f32, y: f32) -> f32 {
-    // Convert to rounded percentage string.
     let result = (x * 100.0) / y;
     result.round()
 }

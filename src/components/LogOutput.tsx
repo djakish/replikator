@@ -1,6 +1,5 @@
 import { Card } from "@geist-ui/core";
 import dynamic from "next/dynamic";
-import { Suspense } from "react";
 
 const LazyLog = dynamic(
   () => import("react-lazylog").then((mod) => mod.LazyLog),
