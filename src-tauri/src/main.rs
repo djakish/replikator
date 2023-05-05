@@ -11,15 +11,15 @@ use std::path::PathBuf;
 
 use seahash::hash;
 use std::ffi::OsStr;
-use std::fs::{ read};
+use std::fs::read;
 use tree_flat::prelude::*;
 
+mod compression;
 mod json_io;
 mod types;
-mod compression;
+use compression::*;
 use json_io::*;
 use types::*;
-use compression::*;
 
 fn name_from_path(path: PathBuf) -> String {
     let os_str: &OsStr = path.file_name().unwrap();
@@ -54,7 +54,6 @@ async fn get_files_tree(path: &str) -> Result<(String, usize), DirectoryReadErro
 
     Ok((format!("{}", tree), count))
 }
-
 
 #[tauri::command]
 async fn folder_compare(input: &str, output: &str) -> Result<(String, usize), DirectoryReadError> {

@@ -29,11 +29,11 @@ pub fn add_entry(json_path: &str, title: String, input: String, output: String, 
     let file = File::open(json_path).unwrap();
     let mut json: Backups = serde_json::from_reader(file).expect("JSON was not formatted");
     let new_entry = BackupEntry {
-        title: title,
-        input: input,
-        output: output,
+        title,
+        input,
+        output,
         last_backup: String::new(),
-        next_update: next_update,
+        next_update,
         delete_button: String::new(),
         backup_button: String::new(),
         hash: hash.to_string(),
