@@ -156,6 +156,13 @@ pub async fn increment(
         Utc,
     );
 
+    Notification::new(String::from("com.djakish.dev"))
+    .title("Repliktor")
+    .body("The backup has started.")
+    .show()
+    .unwrap();
+
+
     let input_dir = PathBuf::from(input);
 
     // Extract the name of the input directory
@@ -207,6 +214,8 @@ pub async fn increment(
 
                 let comparison_result = modified.cmp(&date_time);
 
+
+                // If modification time is after the last backup we should backup
                 if comparison_result == std::cmp::Ordering::Greater {
                     should_backup = true;
                 } else {
@@ -215,12 +224,14 @@ pub async fn increment(
 
                     if let Some(res) = exact_size {
                         let existing_size = fs::metadata(&entry_path).unwrap().len();
+                         // If size is different we backup
                         if existing_size != res {
                             should_backup = true;
                         }
                     }
                 }
             } else {
+                // If file doesn't exist we backup
                 should_backup = true;
             }
             // Open the input and output files
@@ -251,7 +262,7 @@ pub async fn increment(
 
     Notification::new(String::from("com.djakish.dev"))
         .title("Repliktor")
-        .body("The backup have finished.")
+        .body("The backup has finished.")
         .show()
         .unwrap();
 

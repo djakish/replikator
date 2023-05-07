@@ -1,5 +1,5 @@
 import { Tooltip, Button, Spacer, Grid, useTheme } from "@geist-ui/core";
-import { Save, Rewind, Database, Sun, Moon } from "@geist-ui/icons";
+import { Save, Rewind, Database, Sun, Moon, Info } from "@geist-ui/icons";
 import Link from "next/link";
 import { Url } from "next/dist/shared/lib/router/router";
 import { useEffect, useState } from "react";
@@ -59,6 +59,13 @@ export default function RouterButtons(href: Url) {
           }
         />
       </Tooltip>
+      <Spacer h={0.5} />
+      <Tooltip type="lite" placement="right" text={"Info"}>
+        <Link href="/info">
+          <Button iconRight={<Info />} auto px={0.6} />
+        </Link>
+      </Tooltip>
+
     </Grid>
   );
 }

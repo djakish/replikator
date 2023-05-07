@@ -17,7 +17,7 @@ tauri-build = { version = "1.2.1", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["api-all", "notification"] }
+tauri = { version = "1.2.4", features = ["dialog-open", "dialog-save", "fs-copy-file", "fs-create-dir", "fs-exists", "fs-read-dir", "fs-read-file", "fs-remove-dir", "fs-remove-file", "fs-rename-file", "fs-write-file", "notification", "path-all", "window-close", "window-hide", "window-show", "window-start-dragging"] }
 # new deps
 jwalk = "0.8.1"
 zstd = {version = "0.12", features = ["zstdmt"] }
@@ -44,5 +44,5 @@ custom-protocol = ["tauri/custom-protocol"]
 panic = "abort" # Strip expensive panic clean-up logic
 codegen-units = 1 # Compile crates one after another so the compiler can optimize better
 lto = true # Enables link to optimizations
-opt-level = "s" # Optimize for binary size
+opt-level = "z" # Optimize for binary size
 strip = true # Remove debug symbols

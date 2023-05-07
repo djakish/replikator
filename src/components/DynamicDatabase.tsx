@@ -102,7 +102,8 @@ export default function DynamicDatabase() {
         output: rowData.output,
         lastBackup: rowData.lastBackup,
       });
-      fetchData().catch(console.error);
+
+      await fetchData().catch(console.error);
     };
     return (
       <Button

@@ -11,9 +11,7 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true,
       "dialog": {
-        "all": true,
         "open": true, 
         "save": true 
       },
@@ -29,14 +27,9 @@
         "exists": true
       },
       "window": {
-        "all": false,
         "close": true,
         "hide": true,
         "show": true,
-        "maximize": true,
-        "minimize": true,
-        "unmaximize": true,
-        "unminimize": true,
         "startDragging": true
       },
       "path": {

@@ -1,5 +1,6 @@
-import { Card } from "@geist-ui/core";
+import { Card, useTheme } from "@geist-ui/core";
 import dynamic from "next/dynamic";
+import Line from "react-lazylog/build/Line";
 
 const LazyLog = dynamic(
   () => import("react-lazylog").then((mod) => mod.LazyLog),
@@ -20,6 +21,11 @@ type LogProps = {
 };
 
 export default function LogOutput(props: LogProps) {
+  const theme = useTheme();
+
+  let dark = { backgroundColor: "transparent", color: "#FFF" };
+  let white = { backgroundColor: "transparent", color: "#000", };
+
   return (
     <Card>
       <div style={{ height: 400, width: 680 }}>
@@ -27,7 +33,7 @@ export default function LogOutput(props: LogProps) {
           startFollowing
           render={({ follow }) => (
             <LazyLog
-              style={{ backgroundColor: "#000", color: "#FAFAFA" }}
+              style={theme.type === "dark" ? dark : white}
               url=""
               text={props.text}
               follow={follow}
