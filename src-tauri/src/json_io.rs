@@ -57,8 +57,6 @@ pub fn delete_entry(json_path: &str, hash: String) {
     std::fs::write(json_path, serde_json::to_string_pretty(&json).unwrap()).unwrap();
 }
 
-
-
 pub fn change_date(json_path: &str, hash: String, new_date: String) {
     let file = File::open(json_path).unwrap();
     let mut json: Backups = serde_json::from_reader(file).expect("JSON was not formatted");

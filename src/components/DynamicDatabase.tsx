@@ -94,13 +94,13 @@ export default function DynamicDatabase() {
   const backupAction = (value: any, rowData: any, index: number) => {
     const backupHandler = async () => {
       //setData((last) => last.filter((_, dataIndex) => dataIndex !== index));
-      console.log("test")
+      console.log("test");
       invoke("increment", {
         jsonPath: await json_path(),
         hash: rowData.hash,
         input: rowData.input,
         output: rowData.output,
-        lastBackup: rowData.lastBackup
+        lastBackup: rowData.lastBackup,
       });
       fetchData().catch(console.error);
     };

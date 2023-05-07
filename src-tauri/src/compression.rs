@@ -1,8 +1,7 @@
 use std::{
     fs::{self, File},
-    path::{Path, PathBuf},
+    path::PathBuf,
     thread,
-    time::SystemTime,
 };
 
 use chrono::{DateTime, NaiveDateTime, Utc};
@@ -204,9 +203,9 @@ pub async fn increment(
                 // Checking if file has
                 let meta = fs::metadata(&dest_path).unwrap();
 
-                let modified: DateTime<Utc> = meta.modified().unwrap().clone().into();
+                let modified: DateTime<Utc> = meta.modified().unwrap().into();
 
-                let comparison_result = modified.cmp(&date_time.into());
+                let comparison_result = modified.cmp(&date_time);
 
                 if comparison_result == std::cmp::Ordering::Greater {
                     should_backup = true;
