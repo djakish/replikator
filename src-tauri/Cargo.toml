@@ -17,10 +17,10 @@ tauri-build = { version = "1.2.1", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["api-all", "system-tray"] }
+tauri = { version = "1.2.4", features = ["api-all", "notification", "system-tray"] }
 # new deps
 jwalk = "0.8.1"
-zstd = {version = "0.12" }
+zstd = {version = "0.12", features = ["zstdmt"] }
 thiserror = "1.0.40"
 rayon = "1.7.0"
 tree-flat = "0.1.2"
@@ -29,6 +29,8 @@ seahash = "4.1.0"
 chrono = "0.4.24"
 # temp
 pathdiff = "0.2.1"
+zstd-safe = { version = "6.0.5+zstd.1.5.4", features = ["experimental"] }
+
 
 [features]
 # by default Tauri runs in production mode

@@ -85,8 +85,6 @@ export default function DynamicDatabase() {
     });
     var jsonData = JSON.parse(data);
     setData(jsonData.backups);
-
-    console.log(await json_path());
   };
 
   useEffect(() => {
@@ -94,8 +92,17 @@ export default function DynamicDatabase() {
   }, []);
 
   const backupAction = (value: any, rowData: any, index: number) => {
-    const backupHandler = () => {
+    const backupHandler = async () => {
       //setData((last) => last.filter((_, dataIndex) => dataIndex !== index));
+      console.log("test")
+      invoke("increment", {
+        jsonPath: await json_path(),
+        hash: rowData.hash,
+        input: rowData.input,
+        output: rowData.output,
+        lastBackup: rowData.lastBackup
+      });
+      fetchData().catch(console.error);
     };
     return (
       <Button

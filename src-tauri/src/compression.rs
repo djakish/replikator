@@ -2,12 +2,15 @@ use std::{
     fs::{self, File},
     path::{Path, PathBuf},
     thread,
+    time::SystemTime,
 };
 
+use chrono::{DateTime, NaiveDateTime, Utc};
 use jwalk::{Parallelism, WalkDir};
+use tauri::api::notification::Notification;
 use tauri::{Manager, Window};
 
-use crate::types::Payload;
+use crate::{json_io::change_date, types::Payload};
 
 fn add_extension(path: &mut std::path::PathBuf, extension: impl AsRef<std::path::Path>) {
     match path.extension() {
@@ -143,78 +146,115 @@ pub async fn decompress_files(window: Window, input: &str, output: &str) -> Resu
 
 #[tauri::command]
 pub async fn increment(
-    window: Window,
+    json_path: &str,
+    hash: String,
     input: &str,
     output: &str,
-    last_update: &str,
+    last_backup: &str,
 ) -> Result<(), ()> {
-    let scene = std::sync::Arc::new(window);
-    let input_dir = Path::new(input);
+    let date_time: DateTime<Utc> = DateTime::from_utc(
+        NaiveDateTime::parse_from_str(last_backup, "%Y-%m-%dT%H:%M:%SZ").unwrap(),
+        Utc,
+    );
+
+    let input_dir = PathBuf::from(input);
 
     // Extract the name of the input directory
     let input_dir_name = input_dir.file_name().unwrap().to_string_lossy();
 
     // Create the output directory with the same name as the input directory
-    let output_dir = Path::new(output).join(&*input_dir_name);
+    let mut output_dir = PathBuf::from(output);
+    output_dir.push(&*input_dir_name);
     fs::create_dir_all(&output_dir).unwrap();
 
     // handles for tasks
-    let mut handles = vec![];
     // Iterate through each entry in the input directory
-    for entry in WalkDir::new(input_dir)
+    for entry in WalkDir::new(&input_dir)
         .parallelism(Parallelism::RayonNewPool(num_cpus::get()))
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        let file_name = entry.file_name().to_string_lossy();
         let entry_path = entry.path();
 
+        // Compare the file
+        // Check if file exists in the output directory
+        // If file exists we compare if its the same size
+        // And compare if it has been modified before
+        // If it doesnt exist we backup
+        // If has been modified we backup
+        // If file has been changed we backup
+
         if entry_path.is_file() {
-            let metadata = fs::metadata(entry_path.clone()).unwrap();
-            // let tempmetadata.modified()
+            let mut should_backup = false;
 
-            let path_without_prefix = entry_path.strip_prefix(input_dir).unwrap();
-            let dest_path = match path_without_prefix.parent() {
-                Some(res) => {
-                    // Basically if inside a folder just create a parent folder
-                    // Technically there always will be a parent folder
-                    fs::create_dir_all(output_dir.join(res)).unwrap();
-                    format!(
-                        "{}\\{}.zst",
-                        output_dir.join(res).to_string_lossy(),
-                        file_name
-                    )
-                }
-                None => {
-                    format!("{}\\{}.zst", output_dir.to_string_lossy(), file_name)
-                }
-            };
+            let mut dest_path = output_dir.join(entry_path.strip_prefix(&input_dir).unwrap());
 
+            // The last modified time is before the parsed date
+            // Append .zst extension
+            add_extension(&mut dest_path, "zst");
+
+            // Create parent directory if necessary
+            fs::create_dir_all(dest_path.parent().unwrap()).unwrap();
+
+            // Checking if file exists in the destination
+            let file_exist = std::path::Path::new(&dest_path).exists();
+
+            // If it does exist we check the size and date
+            if file_exist {
+                // Checking if file has
+                let meta = fs::metadata(&dest_path).unwrap();
+
+                let modified: DateTime<Utc> = meta.modified().unwrap().clone().into();
+
+                let comparison_result = modified.cmp(&date_time.into());
+
+                if comparison_result == std::cmp::Ordering::Greater {
+                    should_backup = true;
+                } else {
+                    let exact_size =
+                        zstd_safe::find_decompressed_size(&fs::read(&dest_path).unwrap()).unwrap();
+
+                    if let Some(res) = exact_size {
+                        let existing_size = fs::metadata(&entry_path).unwrap().len();
+                        if existing_size != res {
+                            should_backup = true;
+                        }
+                    }
+                }
+            } else {
+                should_backup = true;
+            }
             // Open the input and output files
-            let input_file = File::open(entry.path()).unwrap();
-            let output_file = File::create(dest_path.clone()).unwrap();
+            if should_backup {
+                let mut input_file = File::open(&entry_path).unwrap();
 
-            // Compress the input file and write the output to the output file
-            let clone_window = std::sync::Arc::clone(&scene);
-            let handle = thread::spawn(move || {
-                zstd::stream::copy_encode(input_file, output_file, 3).unwrap();
-                // Emit progress event
-                clone_window
-                    .emit_all(
-                        "compress://progress",
-                        Payload {
-                            message: format!("[compressed] {}", dest_path.clone()),
-                        },
-                    )
+                let mut encoder = {
+                    let target = fs::File::create(&dest_path).unwrap();
+                    zstd::Encoder::new(target, 3).unwrap()
+                };
+
+                encoder
+                    .multithread(num_cpus::get_physical() as u32)
                     .unwrap();
-            });
 
-            handles.push(handle);
+                std::io::copy(&mut input_file, &mut encoder).unwrap();
+                encoder.finish().unwrap();
+            }
         }
     }
-    for handle in handles {
-        handle.join().unwrap();
-    }
+
+    // update the lastBackup element and make a windows notification
+    change_date(
+        json_path,
+        hash,
+        Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+    );
+
+    Notification::new(String::from("com.djakish.dev"))
+        .title("Repliktor")
+        .body("The backup have finished.")
+        .show()
+        .unwrap();
 
     Ok(())
 }

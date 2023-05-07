@@ -32,7 +32,7 @@ pub fn add_entry(json_path: &str, title: String, input: String, output: String, 
         title,
         input,
         output,
-        last_backup: String::new(),
+        last_backup: String::from("1971-02-10T13:00:00Z"),
         next_update,
         delete_button: String::new(),
         backup_button: String::new(),
@@ -53,6 +53,23 @@ pub fn delete_entry(json_path: &str, hash: String) {
         .position(|entry| *entry.hash == hash)
         .unwrap();
     json.backups.remove(index);
+
+    std::fs::write(json_path, serde_json::to_string_pretty(&json).unwrap()).unwrap();
+}
+
+
+
+pub fn change_date(json_path: &str, hash: String, new_date: String) {
+    let file = File::open(json_path).unwrap();
+    let mut json: Backups = serde_json::from_reader(file).expect("JSON was not formatted");
+
+    let index = json
+        .backups
+        .iter()
+        .position(|entry| *entry.hash == hash)
+        .unwrap();
+
+    json.backups[index].last_backup = new_date;
 
     std::fs::write(json_path, serde_json::to_string_pretty(&json).unwrap()).unwrap();
 }
