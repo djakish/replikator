@@ -34,7 +34,11 @@ export default function Controls() {
         <X size={20} onClick={handler} />
       </div>
       <Modal visible={state} onClose={closeHandler}>
-        <Modal.Title>Are you sure you want to exit?</Modal.Title>
+        <Modal.Title>warning</Modal.Title>
+        <Modal.Content>
+          <p>Are you sure you want to exit?</p>
+        </Modal.Content>
+
         <Modal.Action passive onClick={onClose}>
           Yes
         </Modal.Action>
