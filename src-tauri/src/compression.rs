@@ -144,6 +144,16 @@ pub async fn decompress_files(window: Window, input: &str, output: &str) -> Resu
 }
 
 #[tauri::command]
+pub async fn notify_start()  -> Result<(), ()> {
+    Notification::new(String::from("com.djakish.dev"))
+    .title("Repliktor")
+    .body("The backup has started.")
+    .show()
+    .unwrap();
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn increment(
     json_path: &str,
     hash: String,
@@ -155,13 +165,6 @@ pub async fn increment(
         NaiveDateTime::parse_from_str(last_backup, "%Y-%m-%dT%H:%M:%SZ").unwrap(),
         Utc,
     );
-
-    Notification::new(String::from("com.djakish.dev"))
-    .title("Repliktor")
-    .body("The backup has started.")
-    .show()
-    .unwrap();
-
 
     let input_dir = PathBuf::from(input);
 
@@ -213,7 +216,6 @@ pub async fn increment(
                 let modified: DateTime<Utc> = meta.modified().unwrap().into();
 
                 let comparison_result = modified.cmp(&date_time);
-
 
                 // If modification time is after the last backup we should backup
                 if comparison_result == std::cmp::Ordering::Greater {

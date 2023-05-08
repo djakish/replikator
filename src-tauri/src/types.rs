@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone)]
 #[derive(Serialize, Deserialize)]
 pub struct BackupEntry {
     pub title: String,

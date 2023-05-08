@@ -117,7 +117,6 @@ async fn folder_compare(input: &str, output: &str) -> Result<(String, usize), Di
             count += 1;
         }
     }
-
     Ok((format!("{}", tree), count))
 }
 
@@ -138,7 +137,9 @@ fn main() {
             get_table,
             add_entry,
             delete_entry,
-            increment
+            increment,
+            notify_start,
+            get_backups_to_update   
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

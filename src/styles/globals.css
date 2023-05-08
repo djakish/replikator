@@ -35,22 +35,3 @@ html::-webkit-scrollbar {
 #titlebar-close:hover {
   background: #c50000;
 }
-
-.lineDark {
-  color:#FAFAFA
-}
-
-.lineWhite {
-  color:#000
-}
-
-.highlightLogLine {
-  background: #0070f3;
-}
-.highlightLogLine:hover {
-  background: #0070f3;
-}
-
-.highlightWhite  {
-  background:#c50000
-}

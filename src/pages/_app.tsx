@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import { GeistProvider, CssBaseline } from "@geist-ui/core";
 import { useCallback, useEffect, useState } from "react";
 import { PrefersContext, ThemeType, themes } from "@/lib/use-prefers";
+import TimeManager from "@/components/TimeManager";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [themeType, setThemeType] = useState<ThemeType>("dark");
@@ -25,6 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <GeistProvider themeType={themeType}>
       <CssBaseline />
       <PrefersContext.Provider value={{ themeType, switchTheme }}>
+        <TimeManager />
         <Component {...pageProps} />
       </PrefersContext.Provider>
     </GeistProvider>
