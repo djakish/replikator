@@ -144,12 +144,12 @@ pub async fn decompress_files(window: Window, input: &str, output: &str) -> Resu
 }
 
 #[tauri::command]
-pub async fn notify_start()  -> Result<(), ()> {
+pub async fn notify_start() -> Result<(), ()> {
     Notification::new(String::from("com.djakish.dev"))
-    .title("Repliktor")
-    .body("The backup has started.")
-    .show()
-    .unwrap();
+        .title("Repliktor")
+        .body("The backup has started.")
+        .show()
+        .unwrap();
     Ok(())
 }
 
@@ -226,7 +226,7 @@ pub async fn increment(
 
                     if let Some(res) = exact_size {
                         let existing_size = fs::metadata(&entry_path).unwrap().len();
-                         // If size is different we backup
+                        // If size is different we backup
                         if existing_size != res {
                             should_backup = true;
                         }

@@ -139,7 +139,7 @@ fn main() {
             delete_entry,
             increment,
             notify_start,
-            get_backups_to_update   
+            get_backups_to_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

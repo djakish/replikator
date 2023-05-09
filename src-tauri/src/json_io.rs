@@ -1,5 +1,5 @@
 use crate::types::{BackupEntry, Backups};
-use chrono::{DateTime, Local, Utc, NaiveDateTime, Duration};
+use chrono::{DateTime, Duration, Local, NaiveDateTime, Utc};
 use seahash::hash;
 use std::{fs::File, path::Path};
 
@@ -28,20 +28,21 @@ pub fn get_backups_to_update(json_path: &str) -> String {
         let file = File::open(json_path).unwrap();
         let backup_entries: Backups =
             serde_json::from_reader(file).expect("JSON was not formatted");
-        
+
         let mut result: Vec<BackupEntry> = vec![];
         for backup in &backup_entries.backups {
             let last_backup: DateTime<Utc> = DateTime::from_utc(
                 NaiveDateTime::parse_from_str(&backup.last_backup, "%Y-%m-%dT%H:%M:%SZ").unwrap(),
                 Utc,
-            );  
+            );
 
-            let next_backup = last_backup + Duration::days(backup.last_backup.parse::<i64>().unwrap());
-            let now: DateTime<Utc> = Utc::now();   
+            let next_backup =
+                last_backup + Duration::days(backup.last_backup.parse::<i64>().unwrap());
+            let now: DateTime<Utc> = Utc::now();
             let comparison_result = now.cmp(&next_backup);
             if comparison_result == std::cmp::Ordering::Greater {
                 result.push(backup.clone());
-            } 
+            }
         }
         serde_json::to_string(&result).unwrap()
     } else {
