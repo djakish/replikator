@@ -65,7 +65,6 @@ export default function RouterButtons(href: Url) {
           <Button iconRight={<Info />} auto px={0.6} />
         </Link>
       </Tooltip>
-
     </Grid>
   );
 }
