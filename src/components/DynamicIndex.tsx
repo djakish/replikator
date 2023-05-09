@@ -13,7 +13,7 @@ import {
   Grid,
 } from "@geist-ui/core";
 import { open } from "@tauri-apps/api/dialog";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import RouterButtons from "@/components/RouterButtons";
 import { appWindow } from "@tauri-apps/api/window";
 import Controls from "./Controls";

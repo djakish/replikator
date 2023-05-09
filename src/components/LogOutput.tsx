@@ -1,6 +1,5 @@
 import { Card, useTheme } from "@geist-ui/core";
 import dynamic from "next/dynamic";
-import Line from "react-lazylog/build/Line";
 
 const LazyLog = dynamic(
   () => import("react-lazylog").then((mod) => mod.LazyLog),

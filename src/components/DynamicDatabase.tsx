@@ -13,24 +13,32 @@ import {
   Table,
   useModal,
   Radio,
+  useToasts,
+  ToastLayout,
 } from "@geist-ui/core";
 import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import RouterButtons from "@/components/RouterButtons";
-import { appWindow } from "@tauri-apps/api/window";
 import Controls from "./Controls";
 import React from "react";
 
-import { BackupEntry, BackupReturn, UpdateTime } from "@/lib/types";
+import { BackupEntry} from "@/lib/types";
 import { json_path } from "@/lib/utils";
-
 export default function DynamicDatabase() {
   const { setVisible, bindings } = useModal();
 
+  const layout: ToastLayout = {
+    maxHeight: '120px',
+    maxWidth: '120vw',
+    width: '60vw',
+    padding: '20px'
+  }
+  const { setToast } = useToasts(layout);
+
   const [data, setData] = React.useState<BackupEntry[]>([]);
 
-  const [inputPath, setInputPath] = useState<string | undefined>("");
-  const [outputPath, setOutputPath] = useState<string | undefined>("");
+  const [inputPath, setInputPath] = useState<string>("");
+  const [outputPath, setOutputPath] = useState<string>("");
   const [backupTitle, setBackupTitle] = useState<string>("");
   const [updateTime, setUpdateTime] = useState(9999);
 
@@ -67,6 +75,35 @@ export default function DynamicDatabase() {
   }
 
   async function addEntry() {
+
+    if (backupTitle.length == 0) {
+      setVisible(false);
+
+      setToast({
+        text: 'Title can\'t be empty',
+        type: 'warning',
+      })
+      return;
+    }
+    if (inputPath.length == 0) {
+      setVisible(false);
+
+      setToast({
+        text: 'Input can\'t be empty',
+        type: 'warning',
+      })
+      return;
+    }
+    if (outputPath.length == 0) {
+      setVisible(false);
+
+      setToast({
+        text: 'Output can\'t be empty',
+        type: 'warning',
+      })
+      return;
+    }
+    
     await invoke("add_entry", {
       jsonPath: await json_path(),
       title: backupTitle,
@@ -94,7 +131,7 @@ export default function DynamicDatabase() {
   const backupAction = (value: any, rowData: any, index: number) => {
     const backupHandler = async () => {
       //setData((last) => last.filter((_, dataIndex) => dataIndex !== index));
-      console.log("test");
+      invoke("notify_start")
       invoke("increment", {
         jsonPath: await json_path(),
         hash: rowData.hash,
@@ -139,8 +176,36 @@ export default function DynamicDatabase() {
     );
   };
 
+  const dateRender = (value: any, rowData: any, index: number) => {
+    return (
+      <Text p b>
+        {
+          // @ts-ignore
+          new Date(rowData.lastBackup).toLocaleString("en-GB")
+        }
+      </Text>
+    );
+  };
+
+  const ShowPaths = (value: any, rowData: any, index: number) => {
+    let text  = "input: " + rowData.input + " | output: " + rowData.output
+    const click = () =>
+      setToast({
+        text: text, 
+        delay: 4000
+      });
+    return (
+      <Button
+        auto
+        scale={1 / 3}
+        font="12px"
+        onClick={click}
+      >Show paths</Button>
+    );
+  };
+
   return (
-    <Page render="effect-seo">
+    <Page render="effect">
       <Controls />
       <Grid.Container gap={2} justify="flex-start">
         <RouterButtons />
@@ -213,14 +278,14 @@ export default function DynamicDatabase() {
             <Spacer />
             <Table data={data}>
               <Table.Column prop="title" label="backup name" />
-              <Table.Column prop="lastBackup" label="last backup" />
-              <Table.Column prop="backup" width={50} render={backupAction} />
               <Table.Column
-                prop="delete"
-                label=""
-                width={50}
-                render={deleteAction}
+                prop="lastBackup"
+                label="last backup"
+                render={dateRender}
               />
+              <Table.Column prop="input" render={ShowPaths}  width={25} />
+              <Table.Column prop="backup" render={backupAction} width={25}  />
+              <Table.Column prop="delete" render={deleteAction} width={25} />
             </Table>
             <Spacer />
           </Card>

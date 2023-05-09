@@ -1,5 +1,5 @@
-import { Divider, Modal } from "@geist-ui/core";
-import { Maximize, Minus, X } from "@geist-ui/icons";
+import { Text, Grid, Modal } from "@geist-ui/core";
+import {  Minus, X } from "@geist-ui/icons";
 
 import { appWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
@@ -36,7 +36,11 @@ export default function Controls() {
       <Modal visible={state} onClose={closeHandler}>
         <Modal.Title>warning</Modal.Title>
         <Modal.Content>
-          <p>Are you sure you want to exit?</p>
+          <Grid.Container justify="center">
+            <Grid >
+              <Text> Are you sure you want to exit?</Text>
+            </Grid>
+          </Grid.Container>
         </Modal.Content>
 
         <Modal.Action passive onClick={onClose}>
