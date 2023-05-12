@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 
-use seahash::hash;
+use xxhash_rust::xxh3::xxh3_64 as hash;
 use std::ffi::OsStr;
 use std::fs::read;
 use tree_flat::prelude::*;
