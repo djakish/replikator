@@ -22,17 +22,17 @@ import RouterButtons from "@/components/RouterButtons";
 import Controls from "./Controls";
 import React from "react";
 
-import { BackupEntry} from "@/lib/types";
+import { BackupEntry } from "@/lib/types";
 import { json_path } from "@/lib/utils";
 export default function DynamicDatabase() {
   const { setVisible, bindings } = useModal();
 
   const layout: ToastLayout = {
-    maxHeight: '120px',
-    maxWidth: '120vw',
-    width: '60vw',
-    padding: '20px'
-  }
+    maxHeight: "120px",
+    maxWidth: "120vw",
+    width: "60vw",
+    padding: "20px",
+  };
   const { setToast } = useToasts(layout);
 
   const [data, setData] = React.useState<BackupEntry[]>([]);
@@ -75,35 +75,34 @@ export default function DynamicDatabase() {
   }
 
   async function addEntry() {
-
     if (backupTitle.length == 0) {
       setVisible(false);
 
       setToast({
-        text: 'Title can\'t be empty',
-        type: 'warning',
-      })
+        text: "Title can't be empty",
+        type: "warning",
+      });
       return;
     }
     if (inputPath.length == 0) {
       setVisible(false);
 
       setToast({
-        text: 'Input can\'t be empty',
-        type: 'warning',
-      })
+        text: "Input can't be empty",
+        type: "warning",
+      });
       return;
     }
     if (outputPath.length == 0) {
       setVisible(false);
 
       setToast({
-        text: 'Output can\'t be empty',
-        type: 'warning',
-      })
+        text: "Output can't be empty",
+        type: "warning",
+      });
       return;
     }
-    
+
     await invoke("add_entry", {
       jsonPath: await json_path(),
       title: backupTitle,
@@ -131,7 +130,7 @@ export default function DynamicDatabase() {
   const backupAction = (value: any, rowData: any, index: number) => {
     const backupHandler = async () => {
       //setData((last) => last.filter((_, dataIndex) => dataIndex !== index));
-      invoke("notify_start")
+      invoke("notify_start");
       invoke("increment", {
         jsonPath: await json_path(),
         hash: rowData.hash,
@@ -188,19 +187,16 @@ export default function DynamicDatabase() {
   };
 
   const ShowPaths = (value: any, rowData: any, index: number) => {
-    let text  = "input: " + rowData.input + " | output: " + rowData.output
+    let text = "input: " + rowData.input + " | output: " + rowData.output;
     const click = () =>
       setToast({
-        text: text, 
-        delay: 4000
+        text: text,
+        delay: 4000,
       });
     return (
-      <Button
-        auto
-        scale={1 / 3}
-        font="12px"
-        onClick={click}
-      >Show paths</Button>
+      <Button auto scale={1 / 3} font="12px" onClick={click}>
+        Show paths
+      </Button>
     );
   };
 
@@ -283,8 +279,8 @@ export default function DynamicDatabase() {
                 label="last backup"
                 render={dateRender}
               />
-              <Table.Column prop="input" render={ShowPaths}  width={25} />
-              <Table.Column prop="backup" render={backupAction} width={25}  />
+              <Table.Column prop="input" render={ShowPaths} width={25} />
+              <Table.Column prop="backup" render={backupAction} width={25} />
               <Table.Column prop="delete" render={deleteAction} width={25} />
             </Table>
             <Spacer />

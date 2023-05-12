@@ -1,5 +1,5 @@
 import { Text, Grid, Modal } from "@geist-ui/core";
-import {  Minus, X } from "@geist-ui/icons";
+import { Minus, X } from "@geist-ui/icons";
 
 import { appWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
@@ -37,7 +37,7 @@ export default function Controls() {
         <Modal.Title>warning</Modal.Title>
         <Modal.Content>
           <Grid.Container justify="center">
-            <Grid >
+            <Grid>
               <Text> Are you sure you want to exit?</Text>
             </Grid>
           </Grid.Container>

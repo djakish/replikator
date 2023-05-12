@@ -9,7 +9,6 @@ const TimeManager = dynamic(() => import("../components/TimeManager"), {
   ssr: false,
 });
 
-
 export default function App({ Component, pageProps }: AppProps) {
   const [themeType, setThemeType] = useState<ThemeType>("dark");
 

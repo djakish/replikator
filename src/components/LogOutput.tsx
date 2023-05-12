@@ -23,7 +23,7 @@ export default function LogOutput(props: LogProps) {
   const theme = useTheme();
 
   let dark = { backgroundColor: "transparent", color: "#FFF" };
-  let white = { backgroundColor: "transparent", color: "#000", };
+  let white = { backgroundColor: "transparent", color: "#000" };
 
   return (
     <Card>

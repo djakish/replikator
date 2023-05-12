@@ -1,7 +1,7 @@
 use crate::types::{BackupEntry, Backups};
 use chrono::{DateTime, Duration, Local, NaiveDateTime, Utc};
-use seahash::hash;
 use std::{fs::File, path::Path};
+use  xxhash_rust::xxh3::xxh3_64 as hash;
 
 #[tauri::command]
 pub fn get_table(json_path: &str) -> String {
