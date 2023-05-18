@@ -258,7 +258,8 @@ export default function DynamicDatabase() {
                   onChange={(val) => setUpdateTime(val as number)}
                 >
                   <Radio value="9999">Never</Radio>
-                  <Radio value="7">Every week</Radio>
+                  <Radio value="1">Every Day</Radio>
+                  <Radio value="7">Every Week</Radio>
                   <Radio value="30">Every Month</Radio>
                 </Radio.Group>
                 <Spacer />
