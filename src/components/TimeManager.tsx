@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function TimeManager() {
   const [data, setData] = useState<BackupEntry[]>([]);
-  const HOUR_MS = 360000;
+  const HOUR_MS = 360000;//360000;
 
   const fetchData = async () => {
     const data: string = await invoke("get_backups_to_update", {
@@ -18,7 +18,6 @@ export default function TimeManager() {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData().catch(console.error);
-
       data.forEach(async (backup) => {
         invoke("increment", {
           jsonPath: await json_path(),

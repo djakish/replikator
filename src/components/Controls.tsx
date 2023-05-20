@@ -19,7 +19,7 @@ export default function Controls() {
   }
 
   async function onClose() {
-    appWindow.close();
+    appWindow.hide();
   }
 
   return (
@@ -38,7 +38,7 @@ export default function Controls() {
         <Modal.Content>
           <Grid.Container justify="center">
             <Grid>
-              <Text> Are you sure you want to exit?</Text>
+              <Text> Are you sure you want to exit? The app will be closed into a tray.</Text>
             </Grid>
           </Grid.Container>
         </Modal.Content>

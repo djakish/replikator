@@ -37,7 +37,7 @@ pub fn get_backups_to_update(json_path: &str) -> String {
             );
 
             let next_backup =
-                last_backup + Duration::days(backup.last_backup.parse::<i64>().unwrap());
+                last_backup + Duration::days(backup.next_update.into());
             let now: DateTime<Utc> = Utc::now();
             let comparison_result = now.cmp(&next_backup);
             if comparison_result == std::cmp::Ordering::Greater {
