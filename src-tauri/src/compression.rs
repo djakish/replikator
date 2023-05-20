@@ -210,7 +210,7 @@ pub async fn increment(
 
             // If it does exist we check the size and date
             if file_exist {
-                // Checking if file has
+                // Checking if file has changed
                 let meta = fs::metadata(&dest_path).unwrap();
 
                 let modified: DateTime<Utc> = meta.modified().unwrap().into();

@@ -3,16 +3,20 @@
     windows_subsystem = "windows"
 )]
 
-// my imports
 use jwalk::{Parallelism, WalkDir};
+use tauri::Manager;
+use tauri::SystemTrayEvent;
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 
-use xxhash_rust::xxh3::xxh3_64 as hash;
+use tauri::SystemTray;
+use tauri::{CustomMenuItem, SystemTrayMenu, SystemTrayMenuItem};
+
 use std::ffi::OsStr;
 use std::fs::read;
 use tree_flat::prelude::*;
+use xxhash_rust::xxh3::xxh3_64 as hash;
 
 mod compression;
 mod json_io;
@@ -127,7 +131,24 @@ fn get_percentage_rounded(x: f32, y: f32) -> f32 {
 }
 
 fn main() {
+    // here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let hide = CustomMenuItem::new("show".to_string(), "Show");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(quit)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(hide);
+
+    let tray = SystemTray::new().with_menu(tray_menu);
+
     tauri::Builder::default()
+    .on_window_event(|event| match event.event() {
+        tauri::WindowEvent::CloseRequested { api, .. } => {
+          event.window().hide().unwrap();
+          api.prevent_close();
+        }
+        _ => {}
+      })
         .invoke_handler(tauri::generate_handler![
             get_files_tree,
             compress_files,
@@ -141,6 +162,20 @@ fn main() {
             notify_start,
             get_backups_to_update
         ])
+        .system_tray(tray)
+        .on_system_tray_event(|app, event| match event {
+            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                "quit" => {
+                    std::process::exit(0);
+                }
+                "show" => {
+                    let window = app.get_window("main").unwrap();
+                    window.show().unwrap();
+                }
+                _ => {}
+            },
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
