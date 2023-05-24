@@ -133,15 +133,15 @@ export default function DynamicDatabase() {
     const backupHandler = async () => {
       //setData((last) => last.filter((_, dataIndex) => dataIndex !== index));
       invoke("notify_start");
-      invoke("increment", {
+      await invoke("increment", {
         jsonPath: await json_path(),
         hash: rowData.hash,
         input: rowData.input,
         output: rowData.output,
         lastBackup: rowData.lastBackup,
+      }).finally(() => {
+        fetchData().catch(console.error);
       });
-
-      await fetchData().catch(console.error);
     };
     return (
       <Button
@@ -277,9 +277,8 @@ export default function DynamicDatabase() {
             </Modal>
             <Modal visible={showInfo} onClose={closeHandler}>
               <Modal.Title>Info</Modal.Title>
-              <Modal.Subtitle>This is a modal</Modal.Subtitle>
               <Modal.Content>
-              <Input
+                <Input
                   readOnly
                   value={infoBackup?.title}
                   label="name"
