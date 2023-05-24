@@ -26,6 +26,8 @@ import { BackupEntry } from "@/lib/types";
 import { json_path } from "@/lib/utils";
 export default function DynamicDatabase() {
   const { setVisible, bindings } = useModal();
+  const [showInfo, setShowInfo] = useState(false);
+  const [infoBackup, setInfoBackup] = useState<BackupEntry>();
 
   const layout: ToastLayout = {
     maxHeight: "120px",
@@ -186,18 +188,20 @@ export default function DynamicDatabase() {
     );
   };
 
-  const ShowPaths = (value: any, rowData: any, index: number) => {
-    let text = "input: " + rowData.input + " | output: " + rowData.output;
-    const click = () =>
-      setToast({
-        text: text,
-        delay: 4000,
-      });
+  const showPaths = (value: any, rowData: any, index: number) => {
+    const click = () => {
+      setInfoBackup(rowData);
+      setShowInfo(true);
+    };
     return (
       <Button auto scale={1 / 3} font="12px" onClick={click}>
-        Show paths
+        Info
       </Button>
     );
+  };
+
+  const closeHandler = () => {
+    setShowInfo(false);
   };
 
   return (
@@ -271,6 +275,50 @@ export default function DynamicDatabase() {
                 </Grid.Container>
               </Modal.Content>
             </Modal>
+            <Modal visible={showInfo} onClose={closeHandler}>
+              <Modal.Title>Info</Modal.Title>
+              <Modal.Subtitle>This is a modal</Modal.Subtitle>
+              <Modal.Content>
+              <Input
+                  readOnly
+                  value={infoBackup?.title}
+                  label="name"
+                  width="100%"
+                />
+                <Spacer />
+                <Input
+                  readOnly
+                  value={infoBackup?.input}
+                  label="input"
+                  width="100%"
+                />
+                <Spacer />
+                <Input
+                  readOnly
+                  value={infoBackup?.output}
+                  label="output"
+                  width="100%"
+                />
+                <Spacer />
+                <Input
+                  readOnly
+                  value={
+                    // @ts-ignore
+                    new Date(infoBackup?.lastBackup).toLocaleString("en-GB")
+                  }
+                  label="last backup"
+                  width="100%"
+                />
+                <Spacer />
+                <Input
+                  readOnly
+                  value={infoBackup?.nextUpdate.toString()}
+                  label="Interval of updates in days"
+                  width="100%"
+                />
+                <Spacer />
+              </Modal.Content>
+            </Modal>
 
             <Spacer />
             <Table data={data}>
@@ -280,7 +328,7 @@ export default function DynamicDatabase() {
                 label="last backup"
                 render={dateRender}
               />
-              <Table.Column prop="input" render={ShowPaths} width={25} />
+              <Table.Column prop="input" render={showPaths} width={25} />
               <Table.Column prop="backup" render={backupAction} width={25} />
               <Table.Column prop="delete" render={deleteAction} width={25} />
             </Table>
